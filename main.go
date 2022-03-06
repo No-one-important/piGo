@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-var n = 0
+var n = 10000
 var silent = false
 
 var (
