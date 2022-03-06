@@ -84,14 +84,14 @@ func main() {
 		d, k = next_digit(k)
 		line = append(line, byte(d)+'0')
 		if len(line) == 10 {
-			if silent != true {
+			if !silent {
 				fmt.Fprintf(w, "%s\t:%d\n", string(line), i)
 			}
 			line = line[:0]
 		}
 		eliminate_digit(d)
 	}
-	if len(line) > 0 && silent != true {
+	if len(line) > 0 && !silent {
 		fmt.Fprintf(w, "%-10s\t:%d\n", string(line), n)
 	}
 }
