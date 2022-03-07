@@ -1,97 +1,46 @@
 package main
 
 import (
-	"bufio"
-	"flag"
 	"fmt"
-	"math/big"
-	"os"
-	"strconv"
+	"math/rand"
+	"runtime"
+	"time"
 )
 
-var n = 10000
-var silent = false
+var precision int = 2147483647
+var inside int = 0
+var size int = 2147483647
+var threads int = runtime.NumCPU()
 
-var (
-	tmp1  = big.NewInt(0)
-	tmp2  = big.NewInt(0)
-	y2    = big.NewInt(1)
-	bigk  = big.NewInt(0)
-	accum = big.NewInt(0)
-	denom = big.NewInt(1)
-	numer = big.NewInt(1)
-	ten   = big.NewInt(10)
-	three = big.NewInt(3)
-	four  = big.NewInt(4)
-)
+func getPi(total int) float64 {
+	return (float64(inside) / float64(total)) * 4
+}
 
-func next_term(k int64) int64 {
-	for {
-		k++
-		y2.SetInt64(k*2 + 1)
-		bigk.SetInt64(k)
-
-		tmp1.Lsh(numer, 1)
-		accum.Add(accum, tmp1)
-		accum.Mul(accum, y2)
-		denom.Mul(denom, y2)
-		numer.Mul(numer, bigk)
-
-		if accum.Cmp(numer) > 0 {
-			return k
+func addpoints(times int, out chan int) {
+	r1 := rand.New(rand.NewSource(time.Now().UnixNano()))
+	var x, y, ret int
+	ret = 0
+	for i := 0; i < times; i++ {
+		x = r1.Intn(size)
+		y = r1.Intn(size)
+		if ((x * x) + (y * y)) < (size * size) {
+			ret += 1
 		}
 	}
-}
-
-func extract_digit(nth *big.Int) int64 {
-	tmp1.Mul(nth, numer)
-	tmp2.Add(tmp1, accum)
-	tmp1.Div(tmp2, denom)
-	return tmp1.Int64()
-}
-
-func next_digit(k int64) (int64, int64) {
-	for {
-		k = next_term(k)
-		d3 := extract_digit(three)
-		d4 := extract_digit(four)
-		if d3 == d4 {
-			return d3, k
-		}
-	}
-}
-
-func eliminate_digit(d int64) {
-	tmp1.SetInt64(d)
-	accum.Sub(accum, tmp1.Mul(denom, tmp1))
-	accum.Mul(accum, ten)
-	numer.Mul(numer, ten)
-}
-
-func init() {
-	flag.Parse()
-	if flag.NArg() > 0 {
-		n, _ = strconv.Atoi(flag.Arg(0))
-	}
+	out <- ret
 }
 
 func main() {
-	w := bufio.NewWriter(os.Stdout)
-	defer w.Flush()
-	line := make([]byte, 0, 10)
-	var d, k int64
-	for i := 1; i <= n; i++ {
-		d, k = next_digit(k)
-		line = append(line, byte(d)+'0')
-		if len(line) == 10 {
-			if !silent {
-				fmt.Fprintf(w, "%s\t:%d\n", string(line), i)
-			}
-			line = line[:0]
-		}
-		eliminate_digit(d)
+	fmt.Println("running on " + fmt.Sprint(threads) + " threads")
+	start := time.Now()
+	results := make(chan int, threads)
+	for i := 0; i < threads; i++ {
+		go addpoints(precision/threads, results)
 	}
-	if len(line) > 0 && !silent {
-		fmt.Fprintf(w, "%-10s\t:%d\n", string(line), n)
+	for i := 0; i < threads; i++ {
+		inside += <-results
 	}
+	duration := time.Since(start)
+	fmt.Println(getPi(precision))
+	fmt.Println("compute time: " + fmt.Sprint(duration))
 }
