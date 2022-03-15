@@ -7,9 +7,9 @@ import (
 	"time"
 )
 
-var precision int = 4294967295
+var precision int = 2147483647
 var inside int = 0
-var size int = 4294967295
+var size int = 2147483647
 var threads int = runtime.NumCPU()
 
 func getPi(total int) float64 {
