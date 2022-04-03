@@ -42,5 +42,5 @@ func main() {
 	}
 	duration := time.Since(start)
 	fmt.Println(getPi(precision))
-	fmt.Println("compute time: " + fmt.Sprint(duration))
+	fmt.Printf("compute time: %v\n", duration)
 }
